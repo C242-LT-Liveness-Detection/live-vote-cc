@@ -1,15 +1,11 @@
 from fastapi import FastAPI
-from routes import auth
-from database import Base, engine
-
-# Initialize database
-Base.metadata.create_all(bind=engine)
+from app.routes import auth
 
 app = FastAPI()
 
 # Include authentication routes
-app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
+app.include_router(auth.router)
 
 @app.get("/")
-def home():
+def read_root():
     return {"message": "Welcome to LiveVote API"}
