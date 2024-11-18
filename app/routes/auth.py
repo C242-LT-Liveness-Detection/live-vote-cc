@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Form
 from sqlalchemy.orm import Session
 from app.models import schemas, user
 from app.db.database import get_db
@@ -13,8 +13,12 @@ def register(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
     new_user = user.create_user(db, user_data)
     return {"message": "User registered successfully", "user": new_user.email}
 
-@router.get("/login")
-def login(email: str, password: str, db: Session = Depends(get_db)):
+@router.post("/login")
+def login(
+    email: str = Form(...), 
+    password: str = Form(...), 
+    db: Session = Depends(get_db)
+):
     db_user = user.authenticate_user(db, email, password)
     if not db_user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
