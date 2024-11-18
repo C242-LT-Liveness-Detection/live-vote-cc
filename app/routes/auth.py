@@ -1,41 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from app.models.schemas import UserRegister, UserLogin
-from app.models.user import User
+from app.models import schemas, user
 from app.db.database import get_db
-import hashlib
 
-router = APIRouter()
+router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/register")
-def register_user(user: UserRegister, db: Session = Depends(get_db)):
-    # Check if email is already registered
-    existing_user = db.query(User).filter(User.email == user.email).first()
+def register(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
+    existing_user = user.get_user_by_email(db, user_data.email)
     if existing_user:
-        raise HTTPException(status_code=400, detail="Email is already registered")
-
-    # Hash password
-    hashed_password = hashlib.sha256(user.password.encode()).hexdigest()
-
-    # Create new user
-    new_user = User(name=user.name, email=user.email, password=hashed_password)
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-
-    return {"message": "User registered successfully", "email": new_user.email}
-
+        raise HTTPException(status_code=400, detail="Email already registered")
+    new_user = user.create_user(db, user_data)
+    return {"message": "User registered successfully", "user": new_user.email}
 
 @router.get("/login")
-def login_user(email: str, password: str, db: Session = Depends(get_db)):
-    # Find user by email
-    user = db.query(User).filter(User.email == email).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    # Verify password
-    hashed_password = hashlib.sha256(password.encode()).hexdigest()
-    if user.password != hashed_password:
-        raise HTTPException(status_code=401, detail="Incorrect password")
-
-    return {"message": "Login successful", "user": {"name": user.name, "email": user.email}}
+def login(email: str, password: str, db: Session = Depends(get_db)):
+    db_user = user.authenticate_user(db, email, password)
+    if not db_user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    return {"message": "Login successful", "user": db_user.email}
