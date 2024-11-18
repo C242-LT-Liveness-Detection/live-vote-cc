@@ -1,1 +1,1 @@
-# Voting-API
+# Voting
