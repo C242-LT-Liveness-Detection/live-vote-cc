@@ -1,8 +1,13 @@
-from fastapi import APIRouter, HTTPException, Depends, Form
+from fastapi import APIRouter, HTTPException, Depends, Form, status
 from sqlalchemy.orm import Session
 from app.models import schemas, user
 from app.db.database import get_db
+from app.utils.jwt import create_access_token, verify_token
+from fastapi.security import OAuth2PasswordBearer
+from datetime import timedelta
 import re
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -49,4 +54,16 @@ def login(
     db_user = user.authenticate_user(db, email, password)
     if not db_user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    return {"message": "Login successful", "user": db_user.email}
+
+    access_token = create_access_token(data={"sub": db_user.email}, expires_delta=timedelta(hours=1))
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@router.get("/me")
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    payload = verify_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid token or expired")
+
+    email = payload.get("sub")
+
+    return {"message": f"Current logged-in user is {email}"}

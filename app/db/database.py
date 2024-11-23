@@ -35,6 +35,11 @@ class Event(Base):
     creator_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     title = Column(String(255), nullable=False)
     unique_code = Column(String(20), nullable=False)
+    question = Column(String(255), nullable=False)
+    choice_1 = Column(String(255), nullable=False)
+    choice_2 = Column(String(255), nullable=False)
+    choice_3 = Column(String(255), nullable=True)
+    choice_4 = Column(String(255), nullable=True)
 
 class Vote(Base):
     __tablename__ = "votes"
