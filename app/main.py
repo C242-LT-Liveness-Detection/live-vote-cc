@@ -1,13 +1,13 @@
 from fastapi import FastAPI
 from fastapi.security import OAuth2PasswordBearer
-from app.routes import auth
+from app.routes import auth, event
 
 app = FastAPI()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
-# Include authentication routes
 app.include_router(auth.router)
+app.include_router(event.router)
 
 @app.get("/")
 def read_root():

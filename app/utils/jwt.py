@@ -1,8 +1,10 @@
 import jwt
 import datetime
 from typing import Optional
+import secrets
+from fastapi import HTTPException
 
-SECRET_KEY = "your_secret_key"
+SECRET_KEY = secrets.token_urlsafe(32)
 ALGORITHM = "HS256"
 
 def create_access_token(data: dict, expires_delta: Optional[datetime.timedelta] = None):
@@ -19,5 +21,8 @@ def verify_token(token: str):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-    except jwt.PyJWTError:
-        return None
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token has expired")
+    except jwt.JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
