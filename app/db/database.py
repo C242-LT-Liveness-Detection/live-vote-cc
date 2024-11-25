@@ -1,6 +1,7 @@
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, text
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, text, DateTime, Boolean
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship
+from datetime import datetime
 
 DATABASE_NAME = "livevote"
 DATABASE_URL = f"mysql+pymysql://root:@localhost/{DATABASE_NAME}"
@@ -22,6 +23,8 @@ class User(Base):
     email = Column(String(100), unique=True, index=True, nullable=False)
     name = Column(String(100), nullable=False)
     password = Column(String(255), nullable=False)
+    
+    votes = relationship("Vote", back_populates="voter")
 
 class Event(Base):
     __tablename__ = "events"
@@ -36,6 +39,8 @@ class Event(Base):
     choice_3 = Column(String(255), nullable=True)
     choice_4 = Column(String(255), nullable=True)
 
+    votes = relationship("Vote", back_populates="event")
+
 class Vote(Base):
     __tablename__ = "votes"
 
@@ -43,6 +48,11 @@ class Vote(Base):
     event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
     voter_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     choice = Column(String(255), nullable=False)
+    joined_at = Column(DateTime, default=datetime.utcnow)
+    liveness_verified = Column(Boolean, default=False)
+
+    event = relationship("Event", back_populates="votes")
+    voter = relationship("User", back_populates="votes")
 
 Base.metadata.create_all(bind=engine)
 

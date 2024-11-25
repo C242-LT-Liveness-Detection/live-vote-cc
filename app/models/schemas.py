@@ -32,3 +32,16 @@ class EventCreate(BaseModel):
 
     class Config:
         orm_mode = True
+
+class JoinEventRequest(BaseModel):
+    unique_code: str
+
+    class Config:
+        orm_mode = True
+
+class JoinEventResponse(BaseModel):
+    message: str
+    event_title: str
+
+    class Config:
+        orm_mode = True
