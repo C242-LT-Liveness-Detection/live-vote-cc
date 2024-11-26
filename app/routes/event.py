@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db, Event, Vote
 from app.models import schemas, event
 from app.routes.auth import get_current_user
+from datetime import datetime
 
 router = APIRouter(prefix="/events", tags=["Events"])
 
@@ -25,6 +26,9 @@ def join_event(
     event = db.query(Event).filter(Event.unique_code == join_data.unique_code).first()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
+    
+    if datetime.now() > event.end_date:
+        raise HTTPException(status_code=400, detail="Event has already ended. You can no longer join.")
 
     existing_vote = db.query(Vote).filter(
         Vote.event_id == event.id,
