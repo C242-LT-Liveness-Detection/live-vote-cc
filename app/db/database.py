@@ -2,6 +2,7 @@ from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, text,
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
+from pytz import timezone
 
 DATABASE_NAME = "livevote"
 DATABASE_URL = f"mysql+pymysql://root:@localhost/{DATABASE_NAME}"
@@ -38,6 +39,9 @@ class Event(Base):
     choice_2 = Column(String(255), nullable=False)
     choice_3 = Column(String(255), nullable=True)
     choice_4 = Column(String(255), nullable=True)
+    allow_multiple_votes = Column(Boolean, default=False)
+    created_date = Column(DateTime, default=lambda: datetime.now(timezone("Asia/Jakarta")),nullable=False)
+    end_date = Column(DateTime, nullable=False)
 
     votes = relationship("Vote", back_populates="event")
 

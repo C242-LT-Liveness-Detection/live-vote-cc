@@ -3,3 +3,5 @@ uvicorn
 sqlalchemy
 pymysql
 email-validator
+sqlmodel
+PyJWT

@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from sqlmodel import Field
+from datetime import datetime
 
 class UserCreate(BaseModel):
     email: str
@@ -29,6 +30,8 @@ class EventCreate(BaseModel):
     choice_2: str
     choice_3: Optional[str] = None
     choice_4: Optional[str] = None
+    allow_multiple_votes: bool
+    end_date: datetime
 
     class Config:
         orm_mode = True
@@ -42,6 +45,15 @@ class JoinEventRequest(BaseModel):
 class JoinEventResponse(BaseModel):
     message: str
     event_title: str
+
+    class Config:
+        orm_mode = True
+
+class EventResponse(BaseModel):
+    id: int
+    title: str
+    question: str
+    created_date: datetime
 
     class Config:
         orm_mode = True

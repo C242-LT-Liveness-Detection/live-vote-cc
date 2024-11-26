@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.db.database import get_db, Event, Vote
@@ -38,3 +39,12 @@ def join_event(
 
     return {"message": f'Event "{event.title}" found. Please proceed with liveness detection before voting.'}
 
+@router.get("/retrive", response_model=List[schemas.EventResponse])
+def get_all_events(
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(get_current_user),
+):
+    events = db.query(Event).filter(Event.creator_id == current_user.id).order_by(Event.created_date.desc()).all()
+    if not events:
+        raise HTTPException(status_code=404, detail="No events found")
+    return events

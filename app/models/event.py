@@ -21,6 +21,8 @@ def create_event(db: Session, event_data: EventCreate, user_id: int):
         choice_2=event_data.choice_2,
         choice_3=event_data.choice_3,
         choice_4=event_data.choice_4,
+        allow_multiple_votes=event_data.allow_multiple_votes,
+        end_date=event_data.end_date,
         unique_code=unique_code
     )
     
