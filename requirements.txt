@@ -5,3 +5,4 @@ pymysql
 email-validator
 sqlmodel
 PyJWT
+jwt

@@ -50,10 +50,11 @@ class JoinEventResponse(BaseModel):
         orm_mode = True
 
 class EventResponse(BaseModel):
-    id: int
+    unique_code: str
     title: str
     question: str
     created_date: datetime
+    end_date: datetime
 
     class Config:
         orm_mode = True
