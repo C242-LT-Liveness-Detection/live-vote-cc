@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, List
 from sqlmodel import Field
 from datetime import datetime
 
@@ -58,3 +58,7 @@ class EventResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+class CastVoteRequest(BaseModel):
+    unique_code: str
+    choices: List[int]

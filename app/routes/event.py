@@ -37,13 +37,16 @@ def join_event(
     if existing_vote:
         raise HTTPException(status_code=400, detail="User has already joined this event")
 
-    new_vote = Vote(event_id=event.id, voter_id=current_user.id, choice="")
+    new_vote = Vote(
+        event_id=event.id,
+        voter_id=current_user.id
+    )
     db.add(new_vote)
     db.commit()
 
     return {"message": f'Event "{event.title}" found. Please proceed with liveness detection before voting.'}
 
-@router.get("/retrive", response_model=List[schemas.EventResponse])
+@router.get("/retrieve", response_model=List[schemas.EventResponse])
 def get_all_events(
     db: Session = Depends(get_db),
     current_user: schemas.User = Depends(get_current_user),
@@ -52,3 +55,41 @@ def get_all_events(
     if not events:
         raise HTTPException(status_code=404, detail="No events found")
     return events
+
+@router.post("/cast-vote")
+def cast_vote(
+    vote_data: schemas.CastVoteRequest,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(get_current_user),
+):
+    event = db.query(Event).filter(Event.unique_code == vote_data.unique_code).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    vote = db.query(Vote).filter(
+        Vote.event_id == event.id,
+        Vote.voter_id == current_user.id
+    ).first()
+
+    if not vote:
+        raise HTTPException(status_code=400, detail="User has not joined this event")
+
+    if any([getattr(vote, f"choice_{i}") for i in range(4)]):
+        raise HTTPException(status_code=400, detail="You have already voted.")
+
+    if event.allow_multiple_votes:
+        for choice in vote_data.choices:
+            if choice not in range(4):
+                raise HTTPException(status_code=400, detail="Invalid choice")
+            
+            setattr(vote, f"choice_{choice}", True)
+        db.commit()
+        return {"message": f"Your votes have been cast for event '{event.title}'."}
+
+    else:
+        if vote_data.choices[0] not in range(4):
+            raise HTTPException(status_code=400, detail="Invalid choice")
+        
+        setattr(vote, f"choice_{vote_data.choices[0]}", True)
+        db.commit()
+        return {"message": f"Your vote has been cast for event '{event.title}'."}

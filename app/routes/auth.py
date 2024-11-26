@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, Form, status
 from sqlalchemy.orm import Session
 from app.models import schemas, user
 from app.db.database import get_db
-from app.utils.jwt import create_access_token, verify_token
+from app.utils.jwt_utils import create_access_token, verify_token
 from fastapi.security import OAuth2PasswordBearer
 from datetime import timedelta
 import re
