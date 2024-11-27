@@ -62,3 +62,13 @@ class EventResponse(BaseModel):
 class CastVoteRequest(BaseModel):
     unique_code: str
     choices: List[int]
+    
+class UserVoteResponse(BaseModel):
+    event_title: str
+    event_question: str
+    event_unique_code: str
+    vote_choices: List[str]
+    voted_at: datetime
+
+    class Config:
+        orm_mode = True
