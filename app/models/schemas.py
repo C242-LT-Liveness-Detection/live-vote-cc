@@ -72,3 +72,24 @@ class UserVoteResponse(BaseModel):
 
     class Config:
         orm_mode = True
+        
+class EventResultRequest(BaseModel):
+    unique_code: str
+
+    class Config:
+        orm_mode = True
+
+class VoteResult(BaseModel):
+    option: str
+    votes: int
+
+        
+class EventResultResponse(BaseModel):
+    event_title: str
+    event_question: str
+    total_votes: int
+    results: List[VoteResult]
+    most_voted_option: Optional[str]
+
+    class Config:
+        orm_mode = True

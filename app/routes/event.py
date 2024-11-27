@@ -93,3 +93,47 @@ def cast_vote(
         setattr(vote, f"choice_{vote_data.choices[0]}", True)
         db.commit()
         return {"message": f"Your vote has been cast for event '{event.title}'."}
+
+@router.post("/result", response_model=schemas.EventResultResponse)
+def get_event_result(
+    result_request: schemas.EventResultRequest,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(get_current_user),
+):
+    event = db.query(Event).filter(Event.unique_code == result_request.unique_code).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    if event.creator_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You are not authorized to view the results of this event")
+
+    results = []
+    total_votes = 0
+    option_votes = {}
+
+    for i in range(4):
+        option_field = f"choice_{i + 1}"
+        if getattr(event, option_field) is None:
+            continue
+
+        vote_count = db.query(Vote).filter(
+            Vote.event_id == event.id,
+            getattr(Vote, f"choice_{i}") == True
+        ).count()
+        total_votes += vote_count
+
+        option_votes[getattr(event, option_field)] = vote_count
+        results.append({
+            "option": getattr(event, option_field),
+            "votes": vote_count
+        })
+
+    most_voted_option = max(option_votes, key=option_votes.get, default=None)
+
+    return {
+        "event_title": event.title,
+        "event_question": event.question,
+        "total_votes": total_votes,
+        "results": results,
+        "most_voted_option": most_voted_option
+    }
