@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.db.database import Event, User
+from app.db.database import Event, Option
 from app.models.schemas import EventCreate
 import random
 import string
@@ -17,10 +17,6 @@ def create_event(db: Session, event_data: EventCreate, user_id: int):
         creator_id=user_id,
         title=event_data.title,
         question=event_data.question,
-        choice_1=event_data.choice_1,
-        choice_2=event_data.choice_2,
-        choice_3=event_data.choice_3,
-        choice_4=event_data.choice_4,
         allow_multiple_votes=event_data.allow_multiple_votes,
         end_date=event_data.end_date,
         unique_code=unique_code
@@ -29,4 +25,23 @@ def create_event(db: Session, event_data: EventCreate, user_id: int):
     db.add(new_event)
     db.commit()
     db.refresh(new_event)
+
+    for option_text in event_data.options:
+        add_option_to_event(db, event_id=new_event.id, option_text=option_text)
+
     return new_event
+
+def add_option_to_event(db: Session, event_id: int, option_text: str):
+    """Tambahkan opsi ke event tertentu dengan nomor urut per event."""
+    max_number = db.query(Option).filter(Option.event_id == event_id).count()
+
+    new_option = Option(
+        event_id=event_id,
+        option_text=option_text,
+        event_option_number=max_number + 1
+    )
+    db.add(new_option)
+    db.commit()
+    db.refresh(new_option)
+
+    return new_option

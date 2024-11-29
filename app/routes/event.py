@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.db.database import get_db, Event, Vote
+from app.db.database import get_db, Event, Vote, Option, VoteOptions
 from app.models import schemas, event
 from app.routes.auth import get_current_user
 from datetime import datetime
@@ -15,7 +15,11 @@ def create_event(
     current_user: schemas.User = Depends(get_current_user)
 ):
     new_event = event.create_event(db, event_data, current_user.id)
-    return {"message": "Event created successfully", "event": new_event.title, "unique_code": new_event.unique_code}
+    return {
+        "message": "Event created successfully",
+        "event": new_event.title,
+        "unique_code": new_event.unique_code
+    }
 
 @router.post("/join")
 def join_event(
@@ -74,25 +78,32 @@ def cast_vote(
     if not vote:
         raise HTTPException(status_code=400, detail="User has not joined this event")
 
-    if any([getattr(vote, f"choice_{i}") for i in range(4)]):
+    has_voted = db.query(VoteOptions).filter(VoteOptions.vote_id == vote.id).first()
+    if has_voted:
         raise HTTPException(status_code=400, detail="You have already voted.")
 
-    if event.allow_multiple_votes:
-        for choice in vote_data.choices:
-            if choice not in range(4):
-                raise HTTPException(status_code=400, detail="Invalid choice")
-            
-            setattr(vote, f"choice_{choice}", True)
-        db.commit()
-        return {"message": f"Your votes have been cast for event '{event.title}'."}
+    valid_options = db.query(Option).filter(Option.event_id == event.id).all()
+    valid_option_ids = [option.id for option in valid_options]
 
-    else:
-        if vote_data.choices[0] not in range(4):
-            raise HTTPException(status_code=400, detail="Invalid choice")
-        
-        setattr(vote, f"choice_{vote_data.choices[0]}", True)
-        db.commit()
-        return {"message": f"Your vote has been cast for event '{event.title}'."}
+    if not all(option_id in valid_option_ids for option_id in vote_data.option_ids):
+        raise HTTPException(status_code=400, detail="Invalid choice(s).")
+
+    if not event.allow_multiple_votes and len(vote_data.option_ids) > 1:
+        raise HTTPException(
+            status_code=400, 
+            detail="Multiple votes are not allowed for this event."
+        )
+
+    for option_id in vote_data.option_ids:
+        vote_option = VoteOptions(
+            vote_id=vote.id,
+            option_id=option_id
+        )
+        db.add(vote_option)
+
+    db.commit()
+
+    return {"message": f"Your votes have been cast for event '{event.title}'."}
 
 @router.post("/result", response_model=schemas.EventResultResponse)
 def get_event_result(

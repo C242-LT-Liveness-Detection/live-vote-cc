@@ -33,32 +33,47 @@ class Event(Base):
     id = Column(Integer, primary_key=True, index=True)
     creator_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     title = Column(String(255), nullable=False)
-    unique_code = Column(String(20), nullable=False)
+    unique_code = Column(String(20), nullable=False, unique=True)
     question = Column(String(255), nullable=False)
-    choice_1 = Column(String(255), nullable=False)
-    choice_2 = Column(String(255), nullable=False)
-    choice_3 = Column(String(255), nullable=True)
-    choice_4 = Column(String(255), nullable=True)
     allow_multiple_votes = Column(Boolean, default=False)
-    created_date = Column(DateTime, default=lambda: datetime.now(timezone("Asia/Jakarta")),nullable=False)
+    created_date = Column(DateTime, default=lambda: datetime.now(timezone("Asia/Jakarta")), nullable=False)
     end_date = Column(DateTime, nullable=False)
 
-    votes = relationship("Vote", back_populates="event")
+    votes = relationship("Vote", back_populates="event", cascade="all, delete-orphan")
+    options = relationship("Option", back_populates="event", cascade="all, delete-orphan")
+    
+class Option(Base):
+    __tablename__ = "options"
+
+    id = Column(Integer, primary_key=True, index=True)
+    event_id = Column(Integer, ForeignKey("events.id", ondelete="CASCADE"), nullable=False)
+    option_text = Column(String(255), nullable=False)
+    event_option_number = Column(Integer, nullable=False)
+
+    event = relationship("Event", back_populates="options")
+    vote_options = relationship("VoteOptions", back_populates="option", cascade="all, delete-orphan")
 
 class Vote(Base):
     __tablename__ = "votes"
 
     id = Column(Integer, primary_key=True, index=True)
-    event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
-    voter_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    choice_0 = Column(Boolean, default=False)
-    choice_1 = Column(Boolean, default=False)
-    choice_2 = Column(Boolean, default=False)
-    choice_3 = Column(Boolean, default=False)
-    joined_at = Column(DateTime, default=lambda: datetime.now(timezone("Asia/Jakarta")),nullable=False)
+    event_id = Column(Integer, ForeignKey("events.id", ondelete="CASCADE"), nullable=False)
+    voter_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    joined_at = Column(DateTime, default=lambda: datetime.now(timezone("Asia/Jakarta")), nullable=False)
 
     event = relationship("Event", back_populates="votes")
     voter = relationship("User", back_populates="votes")
+    vote_options = relationship("VoteOptions", back_populates="vote", cascade="all, delete-orphan")
+    
+class VoteOptions(Base):
+    __tablename__ = "vote_options"
+
+    id = Column(Integer, primary_key=True, index=True)
+    vote_id = Column(Integer, ForeignKey("votes.id", ondelete="CASCADE"), nullable=False)
+    option_id = Column(Integer, ForeignKey("options.id", ondelete="CASCADE"), nullable=False)
+
+    vote = relationship("Vote", back_populates="vote_options")
+    option = relationship("Option", back_populates="vote_options")
 
 Base.metadata.create_all(bind=engine)
 

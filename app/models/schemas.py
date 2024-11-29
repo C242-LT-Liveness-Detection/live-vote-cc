@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, validator
 from typing import Optional, List
 from sqlmodel import Field
 from datetime import datetime
@@ -24,27 +24,29 @@ class User(BaseModel):
         orm_mode = True
 
 class EventCreate(BaseModel):
-    title: str
+    title: str = Field(..., min_length=1, max_length=255)
     question: str
-    choice_1: str
-    choice_2: str
-    choice_3: Optional[str] = None
-    choice_4: Optional[str] = None
+    options: List[str]
     allow_multiple_votes: bool
     end_date: datetime
+    
+    @validator("end_date")
+    def validate_end_date(cls, value):
+        if value <= datetime.now():
+            raise ValueError("End date must be in the future.")
+        return value
+    
+    @validator("options")
+    def validate_options(cls, value):
+        if len(value) < 2:
+            raise ValueError("At least two options are required.")
+        return value
 
     class Config:
         orm_mode = True
 
 class JoinEventRequest(BaseModel):
     unique_code: str
-
-    class Config:
-        orm_mode = True
-
-class JoinEventResponse(BaseModel):
-    message: str
-    event_title: str
 
     class Config:
         orm_mode = True
@@ -59,15 +61,31 @@ class EventResponse(BaseModel):
     class Config:
         orm_mode = True
 
+class OptionResponse(BaseModel):
+    id: int
+    option_text: str
+    event_option_number: int
+
+    class Config:
+        orm_mode = True
+
 class CastVoteRequest(BaseModel):
     unique_code: str
-    choices: List[int]
+    option_ids: List[int]
+    
+    @validator("option_ids")
+    def validate_option_ids(cls, value):
+        if len(value) != len(set(value)):
+            raise ValueError("Duplicate option IDs are not allowed.")
+        if not value:
+            raise ValueError("At least one option ID is required.")
+        return value
     
 class UserVoteResponse(BaseModel):
     event_title: str
     event_question: str
     event_unique_code: str
-    vote_choices: List[str]
+    vote_choices: List[OptionResponse]
     voted_at: datetime
 
     class Config:
@@ -82,7 +100,6 @@ class EventResultRequest(BaseModel):
 class VoteResult(BaseModel):
     option: str
     votes: int
-
         
 class EventResultResponse(BaseModel):
     event_title: str
