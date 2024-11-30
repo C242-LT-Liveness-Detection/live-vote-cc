@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.routes.auth import get_current_user
-from app.db.database import get_db, Event, Vote
+from app.db.database import get_db, Event, Vote, Option
 from typing import List
 from app.models import schemas
 
@@ -20,17 +20,23 @@ def get_user_votes(
     user_votes = []
     for vote in votes:
         event = db.query(Event).filter(Event.id == vote.event_id).first()
+        if not event:
+            continue
 
-        choices = []
-        for i in range(4):
-            if getattr(vote, f"choice_{i}"):
-                choices.append(getattr(event, f"choice_{i + 1}"))
+        vote_choices = []
+        for vote_option in vote.vote_options:
+            option = db.query(Option).filter(Option.id == vote_option.option_id).first()
+            vote_choices.append({
+                "id": option.id,
+                "option_text": option.option_text,
+                "event_option_number": option.event_option_number
+            })
 
         user_votes.append({
             "event_title": event.title,
             "event_question": event.question,
             "event_unique_code": event.unique_code,
-            "vote_choices": choices,
+            "vote_choices": vote_choices,
             "voted_at": vote.joined_at
         })
 

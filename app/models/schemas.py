@@ -110,3 +110,11 @@ class EventResultResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+class OptionResponse(BaseModel):
+    id: int
+    option_text: str
+    event_option_number: Optional[int]
+
+    class Config:
+        orm_mode = True

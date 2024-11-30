@@ -58,6 +58,7 @@ def get_all_events(
     events = db.query(Event).filter(Event.creator_id == current_user.id).order_by(Event.created_date.desc()).all()
     if not events:
         raise HTTPException(status_code=404, detail="No events found")
+
     return events
 
 @router.post("/cast-vote")
@@ -116,30 +117,19 @@ def get_event_result(
         raise HTTPException(status_code=404, detail="Event not found")
 
     if event.creator_id != current_user.id:
-        raise HTTPException(status_code=403, detail="You are not authorized to view the results of this event")
+        raise HTTPException(status_code=403, detail="You are not authorized to view this event's results")
 
     results = []
     total_votes = 0
-    option_votes = {}
 
-    for i in range(4):
-        option_field = f"choice_{i + 1}"
-        if getattr(event, option_field) is None:
-            continue
-
-        vote_count = db.query(Vote).filter(
-            Vote.event_id == event.id,
-            getattr(Vote, f"choice_{i}") == True
-        ).count()
+    # Ambil opsi dan hitung suara
+    for option in event.options:
+        vote_count = db.query(VoteOptions).filter(VoteOptions.option_id == option.id).count()
         total_votes += vote_count
+        results.append({"option": option.option_text, "votes": vote_count})
 
-        option_votes[getattr(event, option_field)] = vote_count
-        results.append({
-            "option": getattr(event, option_field),
-            "votes": vote_count
-        })
-
-    most_voted_option = max(option_votes, key=option_votes.get, default=None)
+    # Temukan opsi dengan suara terbanyak
+    most_voted_option = max(results, key=lambda x: x["votes"], default=None)["option"] if results else None
 
     return {
         "event_title": event.title,
