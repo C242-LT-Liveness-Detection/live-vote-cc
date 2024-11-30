@@ -122,13 +122,11 @@ def get_event_result(
     results = []
     total_votes = 0
 
-    # Ambil opsi dan hitung suara
     for option in event.options:
         vote_count = db.query(VoteOptions).filter(VoteOptions.option_id == option.id).count()
         total_votes += vote_count
         results.append({"option": option.option_text, "votes": vote_count})
 
-    # Temukan opsi dengan suara terbanyak
     most_voted_option = max(results, key=lambda x: x["votes"], default=None)["option"] if results else None
 
     return {
