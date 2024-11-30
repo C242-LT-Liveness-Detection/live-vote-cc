@@ -31,6 +31,9 @@ def join_event(
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
     
+    if current_user.id == event.creator_id:
+        raise HTTPException(status_code=400, detail="You cannot join an event you created.")
+    
     if datetime.now() > event.end_date:
         raise HTTPException(status_code=400, detail="Event has already ended. You can no longer join.")
 
