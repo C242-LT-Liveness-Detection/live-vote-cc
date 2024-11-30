@@ -87,24 +87,28 @@ def cast_vote(
         raise HTTPException(status_code=400, detail="You have already voted.")
 
     valid_options = db.query(Option).filter(Option.event_id == event.id).all()
-    valid_option_ids = [option.id for option in valid_options]
+    valid_option_numbers = [option.event_option_number for option in valid_options]
 
-    if not all(option_id in valid_option_ids for option_id in vote_data.option_ids):
+    if not all(option_number in valid_option_numbers for option_number in vote_data.event_option_numbers):
         raise HTTPException(status_code=400, detail="Invalid choice(s).")
 
-    if not event.allow_multiple_votes and len(vote_data.option_ids) > 1:
+    if not event.allow_multiple_votes and len(vote_data.event_option_numbers) > 1:
         raise HTTPException(
             status_code=400, 
             detail="Multiple votes are not allowed for this event."
         )
 
-    for option_id in vote_data.option_ids:
-        vote_option = VoteOptions(
-            vote_id=vote.id,
-            option_id=option_id
-        )
-        db.add(vote_option)
-
+    for option_number in vote_data.event_option_numbers:
+        option = db.query(Option).filter(Option.event_option_number == option_number, Option.event_id == event.id).first()
+        if option:
+            vote_option = VoteOptions(
+                vote_id=vote.id,
+                option_id=option.id
+            )
+            db.add(vote_option)
+        else:
+            raise HTTPException(status_code=400, detail=f"Option with number {option_number} not found.")
+    
     db.commit()
 
     return {"message": f"Your votes have been cast for event '{event.title}'."}

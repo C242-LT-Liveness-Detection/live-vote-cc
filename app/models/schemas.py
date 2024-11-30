@@ -83,14 +83,14 @@ class OptionResponse(BaseModel):
 
 class CastVoteRequest(BaseModel):
     unique_code: str
-    option_ids: List[int]
+    event_option_numbers: List[int]
     
-    @validator("option_ids")
+    @validator("event_option_numbers")
     def validate_option_ids(cls, value):
         if len(value) != len(set(value)):
-            raise ValueError("Duplicate option IDs are not allowed.")
+            raise ValueError("Duplicate option are not allowed.")
         if not value:
-            raise ValueError("At least one option ID is required.")
+            raise ValueError("At least one option is required.")
         return value
     
 class UserVoteResponse(BaseModel):
