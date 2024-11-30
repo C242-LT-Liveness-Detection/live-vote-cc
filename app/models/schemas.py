@@ -2,6 +2,7 @@ from pydantic import BaseModel, EmailStr, validator
 from typing import Optional, List
 from sqlmodel import Field
 from datetime import datetime
+from dateutil.parser import isoparse
 
 class UserCreate(BaseModel):
     email: str
@@ -30,12 +31,23 @@ class EventCreate(BaseModel):
     allow_multiple_votes: bool
     end_date: datetime
     
-    @validator("end_date")
+    @validator("end_date", pre=True)
     def validate_end_date(cls, value):
-        if value <= datetime.now():
+        try:
+            parsed_date = isoparse(value)
+        except ValueError:
+            try:
+                parsed_date = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
+            except ValueError:
+                raise ValueError(
+                    "Invalid datetime format."
+                )
+        
+        if parsed_date <= datetime.now(parsed_date.tzinfo):
             raise ValueError("End date must be in the future.")
-        return value
-    
+        
+        return parsed_date
+
     @validator("options")
     def validate_options(cls, value):
         if len(value) < 2:

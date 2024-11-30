@@ -7,3 +7,4 @@ sqlmodel
 PyJWT
 jwt
 pytz
+python-dateutil
