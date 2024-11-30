@@ -74,7 +74,6 @@ class EventResponse(BaseModel):
         orm_mode = True
 
 class OptionResponse(BaseModel):
-    id: int
     option_text: str
     event_option_number: int
 
@@ -119,14 +118,6 @@ class EventResultResponse(BaseModel):
     total_votes: int
     results: List[VoteResult]
     most_voted_option: Optional[str]
-
-    class Config:
-        orm_mode = True
-
-class OptionResponse(BaseModel):
-    id: int
-    option_text: str
-    event_option_number: Optional[int]
 
     class Config:
         orm_mode = True

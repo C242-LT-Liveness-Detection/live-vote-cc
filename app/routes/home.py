@@ -27,7 +27,6 @@ def get_user_votes(
         for vote_option in vote.vote_options:
             option = db.query(Option).filter(Option.id == vote_option.option_id).first()
             vote_choices.append({
-                "id": option.id,
                 "option_text": option.option_text,
                 "event_option_number": option.event_option_number
             })
