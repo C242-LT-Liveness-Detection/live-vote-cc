@@ -4,7 +4,8 @@ sqlalchemy
 pymysql
 email-validator
 sqlmodel
-PyJWT
-jwt
+python-jose
+passlib[bcrypt]
 pytz
 python-dateutil
+python-dotenv
