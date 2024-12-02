@@ -63,19 +63,20 @@ class JoinEventRequest(BaseModel):
     class Config:
         orm_mode = True
 
+class OptionResponse(BaseModel):
+    event_option_number: int
+    option_text: str
+
+    class Config:
+        orm_mode = True
+
 class EventResponse(BaseModel):
     unique_code: str
     title: str
     question: str
     created_date: datetime
     end_date: datetime
-
-    class Config:
-        orm_mode = True
-
-class OptionResponse(BaseModel):
-    option_text: str
-    event_option_number: int
+    options: List[OptionResponse]
 
     class Config:
         orm_mode = True

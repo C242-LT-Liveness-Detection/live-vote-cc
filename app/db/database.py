@@ -60,6 +60,7 @@ class Vote(Base):
     event_id = Column(Integer, ForeignKey("events.id", ondelete="CASCADE"), nullable=False)
     voter_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     joined_at = Column(DateTime, default=lambda: datetime.now(timezone("Asia/Jakarta")), nullable=False)
+    already_vote = Column(Boolean, default=False)
 
     event = relationship("Event", back_populates="votes")
     voter = relationship("User", back_populates="votes")
