@@ -87,6 +87,7 @@ def get_event_details(
         unique_code=event.unique_code,
         title=event.title,
         question=event.question,
+        allow_multiple_votes=event.allow_multiple_votes,
         created_date=event.created_date,
         end_date=event.end_date,
         options=[

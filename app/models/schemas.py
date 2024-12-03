@@ -74,6 +74,7 @@ class EventResponse(BaseModel):
     unique_code: str
     title: str
     question: str
+    allow_multiple_votes: bool
     created_date: datetime
     end_date: datetime
     options: List[OptionResponse]
