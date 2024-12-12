@@ -17,9 +17,15 @@
 
 ## Specification
 
+#### Minimum System Requirements:
 - VCPUs: 0.25
-- Memory: 1 GB
-- Storage: 10 GB
+- Memory: 0.1 GB
+- Storage: 3 GB
+
+#### Recommended System Requirements:
+- VCPUs: 0.25
+- Memory: 0.5 GB
+- Storage: 5 GB
 
 ## Installation & Run Server Guide
 ### Clone Repository And Install Requirements
