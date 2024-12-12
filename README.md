@@ -32,6 +32,7 @@
 Open terminal and run these command:
 ```bash
 git clone https://github.com/C242-LT-Liveness-Detection/live-vote-cc.git
+cd live-vote-cc
 pip install -r
 ```
 ### Run Server
